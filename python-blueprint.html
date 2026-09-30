@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101918">
+  <title>Python Foundations | GDGoC DeKUT</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+    :root { --bg:#101918; --panel:#192422; --panel-2:#202d29; --ink:#f0f5f0; --muted:#b2c0b9; --mint:#65dfbb; --lime:#d9f27c; --coral:#ff927d; --line:#3b5049; }
+    * { box-sizing:border-box; }
+    html,body { margin:0; min-height:100%; }
+    body { overflow:hidden; color:var(--ink); background:#070d0c; font-family:'Space Grotesk',sans-serif; }
+    button { font:inherit; }
+    .deck { position:relative; height:100dvh; overflow:hidden; }
+    .slide { position:absolute; inset:0; display:grid; grid-template-rows:auto 1fr auto; gap:clamp(20px,3vh,38px); padding:clamp(28px,5vw,76px); overflow-y:auto; background:radial-gradient(ellipse at 88% 12%,#233c34 0,transparent 32%),var(--bg); opacity:0; filter:blur(8px); transform:perspective(1200px) rotateY(-3deg) translateX(4%); pointer-events:none; transition:opacity .42s ease,filter .42s ease,transform .62s cubic-bezier(.2,.8,.2,1); }
+    .slide.active { opacity:1; filter:none; transform:none; pointer-events:auto; }
+    .slide.previous { transform:perspective(1200px) rotateY(3deg) translateX(-4%); }
+    .slide.opening { background:radial-gradient(ellipse at 75% 22%,#315c4c 0,transparent 38%),linear-gradient(135deg,#101918,#162620 65%,#30291d); }
+    .topline { display:flex; justify-content:space-between; align-items:center; gap:16px; color:var(--muted); font:500 13px 'DM Mono',monospace; text-transform:uppercase; }
+    .brand { color:var(--lime); }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:980px; margin-bottom:20px; font-size:clamp(54px,9vw,112px); line-height:.98; letter-spacing:0; }
+    h2 { max-width:1100px; margin-bottom:12px; font-size:clamp(36px,5vw,68px); line-height:1.02; letter-spacing:0; }
+    h3 { margin-bottom:10px; font-size:clamp(20px,2vw,28px); }
+    p { font-size:clamp(18px,2vw,25px); line-height:1.42; }
+    code,pre,.eyebrow { font-family:'DM Mono',monospace; }
+    code { color:var(--lime); }
+    .eyebrow { margin:0 0 14px; color:var(--mint); font-size:14px; font-weight:500; }
+    .lede { max-width:720px; color:#d5e3db; font-size:clamp(22px,2.7vw,34px); }
+    .content { align-self:center; width:100%; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(18px,3vw,42px); align-items:center; }
+    .card { padding:clamp(20px,2.4vw,34px); border:1px solid var(--line); border-radius:8px; background:rgba(25,36,34,.92); }
+    .card p { margin-bottom:0; color:var(--muted); }
+    .terminal { overflow:hidden; border:1px solid #496257; border-radius:8px; background:#0b1210; box-shadow:0 24px 60px #05090899; }
+    .terminal-bar { display:flex; gap:7px; padding:12px 16px; background:#202d29; }
+    .terminal-bar i { width:9px; height:9px; border-radius:50%; background:var(--coral); }
+    .terminal-bar i:nth-child(2) { background:#e6bd68; }
+    .terminal-bar i:nth-child(3) { background:var(--mint); }
+    pre { margin:0; padding:clamp(20px,3vw,32px); overflow-x:auto; color:#e7f2eb; font-size:clamp(16px,1.8vw,24px); line-height:1.65; }
+    .challenge { align-self:end; padding:16px 20px; border-left:4px solid var(--lime); border-radius:4px; background:var(--panel-2); color:#e5eee8; font-size:clamp(17px,1.7vw,22px); line-height:1.4; }
+    .challenge strong { margin-right:8px; color:var(--lime); font-family:'DM Mono',monospace; text-transform:uppercase; font-size:.82em; }
+    .source { align-self:end; margin:0; color:var(--muted); font:13px 'DM Mono',monospace; }
+    .source a { color:var(--mint); text-underline-offset:3px; }
+    .lesson-footer { display:grid; grid-template-columns:1fr auto; gap:8px 24px; align-items:end; }
+    .step { opacity:.15; transform:translateY(12px); filter:grayscale(1); transition:opacity .35s ease,transform .35s ease,filter .35s ease; }
+    .step.visible { opacity:1; transform:none; filter:none; }
+    .map { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .map-item { min-height:130px; padding:18px; border:1px solid var(--line); border-radius:7px; background:var(--panel); }
+    .map-item b { display:block; margin-bottom:12px; color:var(--lime); font:500 14px 'DM Mono',monospace; }
+    .map-item span { font-size:clamp(16px,1.7vw,21px); }
+    .field-grid,.company-grid,.os-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+    .field,.company,.os-card { min-width:0; padding:clamp(16px,2vw,24px); border:1px solid var(--line); border-radius:7px; background:var(--panel); }
+    .field b,.company b,.os-card h3 { display:block; margin-bottom:8px; color:var(--lime); }
+    .field p,.company p,.os-card p { margin:0; color:var(--muted); font-size:clamp(15px,1.4vw,18px); line-height:1.4; }
+    .company-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .company a { color:var(--mint); text-underline-offset:3px; }
+    .source-note { margin:12px 0 0; color:var(--muted); font:12px 'DM Mono',monospace; }
+    .os-card h3 { font:500 15px 'DM Mono',monospace; text-transform:uppercase; }
+    .os-card p + p { margin-top:12px; }
+    .os-card a,.resource-link { color:var(--mint); text-underline-offset:3px; }
+    .tool-note { margin-top:16px; padding:14px 18px; border-left:3px solid var(--mint); background:var(--panel-2); color:var(--muted); font-size:clamp(15px,1.5vw,19px); }
+    .verify-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .verify-item { padding:15px; border:1px solid var(--line); border-radius:6px; background:#0b1210; }
+    .verify-item b { display:block; margin-bottom:10px; color:var(--mint); font:500 13px 'DM Mono',monospace; text-transform:uppercase; }
+    .verify-item code { display:block; font-size:clamp(14px,1.4vw,19px); overflow-wrap:anywhere; }
+    .roadmap { position:relative; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; align-items:center; min-height:330px; }
+    .road-surface { position:absolute; z-index:0; top:50%; left:1%; right:1%; height:108px; transform:translateY(-50%); border:2px solid #69756e; border-radius:56px; background:#303b36; box-shadow:inset 0 8px 18px #111a18,0 12px 28px #05090866; }
+    .road-surface::after { content:""; position:absolute; top:50%; left:3%; right:3%; border-top:3px dashed #e3d9a6; }
+    .road-stop { position:relative; z-index:1; display:grid; grid-template-rows:1fr 50px 1fr; align-items:center; min-height:300px; text-align:center; }
+    .road-stop:nth-of-type(odd) .stop-label { grid-row:1; align-self:end; }
+    .road-stop:nth-of-type(even) .stop-label { grid-row:3; align-self:start; }
+    .stop-marker { grid-row:2; justify-self:center; display:grid; place-items:center; width:42px; aspect-ratio:1; border:5px solid #25312c; border-radius:50%; background:var(--lime); color:#14211a; font:500 13px 'DM Mono',monospace; box-shadow:0 0 0 2px var(--lime); }
+    .road-stop:nth-of-type(odd) .stop-marker { grid-row:2; }
+    .stop-label { padding:12px; border:1px solid var(--line); border-radius:6px; background:#17221f; text-align:left; }
+    .stop-label b { display:block; margin-bottom:6px; color:var(--lime); font:500 12px 'DM Mono',monospace; text-transform:uppercase; }
+    .stop-label strong { display:block; margin-bottom:5px; font-size:clamp(16px,1.5vw,20px); }
+    .stop-label span { display:block; color:var(--muted); font-size:13px; line-height:1.35; }
+    .stop-label.current { border-color:var(--lime); box-shadow:0 0 0 1px var(--lime); }
+    .qa-panel { max-width:900px; padding:clamp(24px,4vw,48px); border:1px solid var(--line); border-left:5px solid var(--lime); border-radius:8px; background:var(--panel); }
+    .qa-panel p { margin:0; color:var(--muted); }
+    .closing-question { color:var(--lime); font-size:clamp(28px,4vw,46px); font-weight:700; }
+    .chrome { position:fixed; z-index:20; inset:auto 0 0; height:5px; background:#2a3934; }
+    .progress { width:0; height:100%; background:linear-gradient(90deg,var(--lime),var(--mint)); transition:width .35s ease; }
+    .counter { position:fixed; z-index:20; right:20px; bottom:19px; padding:7px 10px; border:1px solid #476056; border-radius:5px; background:#101918dd; color:var(--ink); font:13px 'DM Mono',monospace; }
+    .nav { position:fixed; z-index:20; left:20px; bottom:16px; display:flex; gap:8px; }
+    .nav button { width:42px; height:42px; border:1px solid #75e5c0; border-radius:5px; background:var(--mint); color:#10221c; font-size:22px; cursor:pointer; transition:transform .18s ease,background .18s ease; }
+    .nav button:hover { transform:translateY(-2px); background:var(--lime); }
+    .notes { display:none; position:fixed; z-index:30; inset:auto 4vw 58px; max-height:32vh; overflow:auto; padding:18px 22px; border:1px solid var(--line); border-radius:7px; background:#080e0def; color:var(--ink); font-size:16px; line-height:1.5; }
+    body.show-notes .slide.active .notes { display:block; }
+    .overview { display:none; position:fixed; z-index:40; inset:0; overflow:auto; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); align-content:start; gap:12px; padding:24px; background:#0c1412; }
+    body.show-overview .overview { display:grid; }
+    .overview button { min-height:110px; padding:16px; border:1px solid var(--line); border-radius:6px; background:var(--panel); color:var(--ink); text-align:left; cursor:pointer; }
+    .overview button span { display:block; margin-bottom:10px; color:var(--lime); font:13px 'DM Mono',monospace; }
+    @media(max-width:760px) { .grid { grid-template-columns:1fr; } .slide { gap:18px; padding:24px 22px 78px; } .map { grid-template-columns:repeat(2,minmax(0,1fr)); } .map-item { min-height:100px; } .lesson-footer { grid-template-columns:1fr; } .source { font-size:12px; } .field-grid,.company-grid,.os-grid,.verify-grid { grid-template-columns:1fr; } .field,.company,.os-card { padding:14px 16px; } .roadmap { grid-template-columns:1fr; gap:10px; min-height:0; padding-left:54px; } .road-surface { top:0; bottom:0; left:18px; right:auto; width:28px; height:auto; transform:none; border-radius:18px; } .road-surface::after { top:3%; bottom:3%; left:50%; right:auto; border-top:0; border-left:3px dashed #e3d9a6; } .road-stop { min-height:0; display:grid; grid-template-columns:42px 1fr; grid-template-rows:auto; gap:12px; text-align:left; } .road-stop .stop-marker,.road-stop:nth-of-type(odd) .stop-marker { grid-column:1; grid-row:1; } .road-stop .stop-label,.road-stop:nth-of-type(odd) .stop-label,.road-stop:nth-of-type(even) .stop-label { grid-column:2; grid-row:1; align-self:center; } }
+    @media(max-width:760px) { .nav { inset:auto 0 5px; width:100%; height:68px; align-items:flex-end; padding:18px 20px 8px; background:linear-gradient(0deg,rgba(16,25,24,.98) 54%,rgba(16,25,24,0)); } }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { transition-duration:.01ms !important; animation-duration:.01ms !important; } }
+  </style>
+</head>
+<body>
+<main class="deck" aria-live="polite">
+  <section class="slide opening active" data-title="Opening">
+    <div class="topline"><span class="brand">GDGoC DeKUT / Python foundations</span><span>Session 01</span></div>
+    <div class="content"><p class="eyebrow">Start with the essentials</p><h1>Python,<br><span style="color:var(--lime)">one idea at a time.</span></h1><p class="lede">Seven beginner foundations, each with a small example and a challenge to make the idea yours.</p></div>
+    <aside class="notes"><strong>Opening, 2 minutes.</strong> Welcome learners and set the rhythm: explain, predict, run, then try a challenge.</aside>
+  </section>
+
+  <section class="slide" data-title="Session map">
+    <div class="topline"><span class="brand">The session</span><span>Orient / set up / learn / discuss</span></div>
+    <div class="content"><p class="eyebrow">Today's route</p><h2>Get ready, see the destination, learn the first foundations</h2><div class="map">
+      <div class="map-item step"><b>01 / ORIENT</b><span>Why Python and where it is used</span></div><div class="map-item step"><b>02 / SET UP</b><span>Install tools and verify Python</span></div><div class="map-item step"><b>03 / PLAN</b><span>See the learning roadmap</span></div><div class="map-item step"><b>04 / PRACTISE</b><span>Seven foundations, then Q&amp;A</span></div>
+    </div></div>
+    <aside class="notes"><strong>2 minutes.</strong> Tell learners that each topic has a short original example and one practical challenge. W3Schools is the reference for the concepts, not a source for copied prose.</aside>
+  </section>
+
+  <section class="slide" data-title="Why Python">
+    <div class="topline"><span class="brand">Before we begin</span><span>Why Python?</span></div>
+    <div class="content grid"><div><p class="eyebrow">A practical first language</p><h2>Readable enough to start. Powerful enough to grow.</h2></div><div class="card step"><h3>Why teams choose it</h3><p>Clear syntax helps people focus on the problem. A broad library ecosystem supports quick prototypes and substantial production systems. Python also runs across the major desktop platforms.</p><div class="tool-note">Python is a tool, not a shortcut: strong software still needs design, testing, and care.</div></div></div>
+    <aside class="notes"><strong>3 minutes.</strong> Ask learners what they associate with Python. Emphasize readability and ecosystem as practical reasons, not a promise that every task or team should use Python.</aside>
+  </section>
+
+  <section class="slide" data-title="Where Python is used">
+    <div class="topline"><span class="brand">Possibilities</span><span>Many paths share the same basics</span></div>
+    <div class="content"><p class="eyebrow">Where can Python take you?</p><h2>One foundation. Several directions.</h2><div class="field-grid">
+      <div class="field step"><b>01 / Web &amp; APIs</b><p>Build server-side applications, services, and integrations.</p></div>
+      <div class="field step"><b>02 / Data &amp; science</b><p>Explore datasets, automate analysis, and model scientific problems.</p></div>
+      <div class="field step"><b>03 / AI &amp; machine learning</b><p>Prepare data, train models, and connect useful AI tools.</p></div>
+      <div class="field step"><b>04 / Automation</b><p>Turn repetitive computer tasks into dependable scripts.</p></div>
+      <div class="field step"><b>05 / Testing &amp; tooling</b><p>Check software and support development workflows.</p></div>
+      <div class="field step"><b>06 / Education &amp; research</b><p>Teach programming and explore ideas through computation.</p></div>
+    </div></div>
+    <aside class="notes"><strong>3 minutes.</strong> Ask which direction interests the group, but make clear that they do not need to choose now. The same foundations support all these paths.</aside>
+  </section>
+
+  <section class="slide" data-title="Python in the real world">
+    <div class="topline"><span class="brand">In production</span><span>Examples, not endorsements</span></div>
+    <div class="content"><p class="eyebrow">Python works alongside other technologies</p><h2>Large products are built with more than one tool</h2><div class="company-grid">
+      <article class="company step"><b>Dropbox</b><p>In a 2018 engineering article, Dropbox described Python as a major part of its desktop application, alongside native and other language components.</p></article>
+      <article class="company step"><b>Instagram</b><p>Instagram is listed among sites using Django, a Python web framework, by the Django project.</p></article>
+      <article class="company step"><b>Industrial Light &amp; Magic</b><p>The Python Software Foundation documents Python use in ILM's visual-effects work.</p></article>
+    </div><p class="source-note"><a class="resource-link" href="https://dropbox.tech/application/how-we-rolled-out-one-of-the-largest-python-3-migrations-ever" target="_blank" rel="noreferrer">Dropbox Engineering</a> · <a class="resource-link" href="https://www.djangoproject.com/start/overview/" target="_blank" rel="noreferrer">Django: sites using Django</a> · <a class="resource-link" href="https://www.python.org/about/success/ilm/" target="_blank" rel="noreferrer">Python.org: ILM case study</a></p></div>
+    <aside class="notes"><strong>3 minutes.</strong> Be precise: these are examples of Python in parts of larger products/workflows, not claims that these organizations use only Python.</aside>
+  </section>
+
+  <section class="slide" data-title="Install Python">
+    <div class="topline"><span class="brand">Setup / 01</span><span>Install the interpreter</span></div>
+    <div class="content"><p class="eyebrow">Choose your operating system</p><h2>Install Python 3 from a trusted source</h2><div class="os-grid">
+      <article class="os-card step"><h3>Windows</h3><p>Download Python 3 from <a href="https://www.python.org/downloads/windows/" target="_blank" rel="noreferrer">python.org</a>. During setup, enable the option to add Python to PATH if shown.</p><p>Then install the <a href="https://code.visualstudio.com/download" target="_blank" rel="noreferrer">Windows build of VS Code</a>.</p></article>
+      <article class="os-card step"><h3>macOS</h3><p>Install Python 3 from <a href="https://www.python.org/downloads/macos/" target="_blank" rel="noreferrer">python.org</a> or with Homebrew using <code>brew install python3</code>.</p><p>Then install the <a href="https://code.visualstudio.com/download" target="_blank" rel="noreferrer">macOS build of VS Code</a>.</p></article>
+      <article class="os-card step"><h3>Linux</h3><p>Use your distribution's package manager. On Ubuntu, for example: <code>sudo apt install python3</code>.</p><p>Install the matching <a href="https://code.visualstudio.com/download" target="_blank" rel="noreferrer">Linux build of VS Code</a>.</p></article>
+    </div><div class="tool-note">Python is the interpreter that runs code. VS Code is the editor. The Microsoft Python extension connects the editor to an installed interpreter; it does not install Python itself.</div></div>
+    <aside class="notes"><strong>8-12 minutes, hands-on.</strong> Pause and help learners choose the correct downloads. Linux installation differs by distribution; follow that distribution's package guidance. On managed computers, follow local IT policies.</aside>
+  </section>
+
+  <section class="slide" data-title="Install VS Code support">
+    <div class="topline"><span class="brand">Setup / 02</span><span>Connect your tools</span></div>
+    <div class="content grid"><div class="card step"><h3>Prepare VS Code</h3><p>Open Extensions and install <strong>Python</strong> from Microsoft. Create or open a folder for the session, then create <code>hello.py</code>.</p><div class="tool-note">If installation is blocked today, W3Schools' online editor can still run the lesson examples.</div></div><div class="terminal step"><div class="terminal-bar"><i></i><i></i><i></i></div><pre><code># hello.py
+print("Hello, Python!")</code></pre></div></div>
+    <p class="source-note">Downloads: <a class="resource-link" href="https://code.visualstudio.com/download" target="_blank" rel="noreferrer">VS Code for all platforms</a> · <a class="resource-link" href="https://marketplace.visualstudio.com/items?itemName=ms-python.python" target="_blank" rel="noreferrer">Microsoft Python extension</a> · <a class="resource-link" href="https://www.w3schools.com/python/trypython.asp" target="_blank" rel="noreferrer">W3Schools online editor</a></p>
+    <aside class="notes"><strong>5 minutes.</strong> Demonstrate the extension and interpreter picker in VS Code. Explain the difference between editing code and executing it.</aside>
+  </section>
+
+  <section class="slide" data-title="Verify Python">
+    <div class="topline"><span class="brand">Setup / 03</span><span>Check from a fresh terminal</span></div>
+    <div class="content"><p class="eyebrow">Run the command for your OS</p><h2>A version number means the interpreter responds</h2><div class="verify-grid">
+      <div class="verify-item step"><b>Windows</b><code>py -3 --version</code></div>
+      <div class="verify-item step"><b>macOS</b><code>python3 --version</code></div>
+      <div class="verify-item step"><b>Linux</b><code>python3 --version</code></div>
+    </div><div class="grid" style="margin-top:16px"><div class="card step"><h3>Expected</h3><p>A response similar to <code>Python 3.x.x</code>. The exact patch number may differ.</p><p>If the command is not found, reopen the terminal. On Windows, check the Python launcher/PATH; on Linux, install Python 3 through your distribution.</p></div><div class="terminal step"><div class="terminal-bar"><i></i><i></i><i></i></div><pre><code>python3 --version
+Python 3.x.x</code></pre></div></div></div>
+    <aside class="notes"><strong>5 minutes.</strong> Ask everyone to run the command and show a thumbs-up when they see Python 3. macOS/Linux commonly use python3; the Python Launcher command is the reliable Windows choice. Restart an already-open terminal after installation.</aside>
+  </section>
+
+  <section class="slide" data-title="Python learning roadmap">
+    <div class="topline"><span class="brand">The route ahead</span><span>Mapped to the W3Schools Python tutorial</span></div>
+    <div class="content"><p class="eyebrow">A full journey, one stop at a time</p><h2>Today is the first stretch of the road</h2><div class="roadmap" aria-label="Python learning roadmap with five stages">
+      <div class="road-surface" aria-hidden="true"></div>
+      <div class="road-stop"><div class="stop-label"><b>Start here</b><strong>Orient &amp; set up</strong><span>Install Python and VS Code. Verify the terminal.</span></div><div class="stop-marker">01</div></div>
+      <div class="road-stop"><div class="stop-label current"><b>Today's session</b><strong>Python foundations</strong><span>Syntax, output, comments, variables, types, numbers, casting.</span></div><div class="stop-marker">02</div></div>
+      <div class="road-stop"><div class="stop-label"><b>Next stretch</b><strong>Make programs think</strong><span>Strings, operators, decisions, loops, and functions.</span></div><div class="stop-marker">03</div></div>
+      <div class="road-stop"><div class="stop-label"><b>Build fluency</b><strong>Work with real data</strong><span>Collections, modules, files, errors, and classes.</span></div><div class="stop-marker">04</div></div>
+      <div class="road-stop"><div class="stop-label"><b>Choose a direction</b><strong>Build a project</strong><span>Web, data, automation, AI, or scientific computing.</span></div><div class="stop-marker">05</div></div>
+    </div><p class="source-note">This is our original teaching sequence, informed by the <a class="resource-link" href="https://www.w3schools.com/python/" target="_blank" rel="noreferrer">W3Schools Python tutorial</a>; their course includes more topics than this overview.</p></div>
+    <aside class="notes"><strong>3 minutes.</strong> Walk the road from setup to project. Point out that today's highlighted stop is a beginning, not the whole course. The later stops gather related topics into teachable modules.</aside>
+  </section>
+
+  <section class="slide" data-title="Python syntax">
+    <div class="topline"><span class="brand">01 / Syntax</span><span>Structure matters</span></div>
+    <div class="content grid"><div class="card step"><h3>Read the shape</h3><p>Python statements usually run line by line. A colon begins a block, and indentation groups its lines. Names are case-sensitive.</p></div><div class="terminal step"><div class="terminal-bar"><i></i><i></i><i></i></div><pre><code>score = 12
+if score &gt;= 10:
+    print("Level up")</code></pre></div></div>
+    <div class="lesson-footer"><div class="challenge step"><strong>Challenge</strong> Change the score and predict when the message appears. What happens if the print line is not indented?</div><p class="source">Reference: <a href="https://www.w3schools.com/python/python_syntax.asp" target="_blank" rel="noreferrer">W3Schools / Python Syntax</a></p></div>
+    <aside class="notes"><strong>6 minutes.</strong> Focus on the colon and indentation as syntax, not decoration. Ask learners to predict before running the example.</aside>
+  </section>
+
+  <section class="slide" data-title="Python output">
+    <div class="topline"><span class="brand">02 / Output</span><span>Show a result</span></div>
+    <div class="content grid"><div class="card step"><h3>Make a program speak</h3><p><code>print()</code> displays text, numbers, and values. Separate items with commas to print a message without needing string formatting.</p></div><div class="terminal step"><div class="terminal-bar"><i></i><i></i><i></i></div><pre><code>topic = "Python"
+print("We are learning", topic)
+print(3 + 4)</code></pre></div></div>
+    <div class="lesson-footer"><div class="challenge step"><strong>Challenge</strong> Print your name and a number on separate lines, then print the result of adding two numbers.</div><p class="source">Reference: <a href="https://www.w3schools.com/python/python_output.asp" target="_blank" rel="noreferrer">W3Schools / Python Output</a></p></div>
+    <aside class="notes"><strong>6 minutes.</strong> Explain that commas in print() separate values and Python adds a space. Contrast printed text with the result of a calculation.</aside>
+  </section>
+
+  <section class="slide" data-title="Python comments">
+    <div class="topline"><span class="brand">03 / Comments</span><span>Notes for people</span></div>
+    <div class="content grid"><div class="card step"><h3>Explain intent</h3><p>A comment starts with <code>#</code>. Python ignores it while running. Useful comments explain why something is done instead of restating the line.</p></div><div class="terminal step"><div class="terminal-bar"><i></i><i></i><i></i></div><pre><code># Save the workshop seat count
+seats = 24
+print("Seats:", seats)</code></pre></div></div>
+    <div class="lesson-footer"><div class="challenge step"><strong>Challenge</strong> Add a helpful comment above a variable that stores your favourite number. Confirm it does not appear in output.</div><p class="source">Reference: <a href="https://www.w3schools.com/python/python_comments.asp" target="_blank" rel="noreferrer">W3Schools / Python Comments</a></p></div>
+    <aside class="notes"><strong>5 minutes.</strong> The comment is visible in the editor but does not appear in output. Ask whether a comment that repeats the code helps the reader.</aside>
+  </section>
+
+  <section class="slide" data-title="Python variables">
+    <div class="topline"><span class="brand">04 / Variables</span><span>Name a value</span></div>
+    <div class="content grid"><div class="card step"><h3>Store and reuse</h3><p>A variable is a name that refers to a value. Use clear names; assignment uses one equals sign.</p></div><div class="terminal step"><div class="terminal-bar"><i></i><i></i><i></i></div><pre><code>student = "Amina"
+age = 19
+is_member = True
+
+print(student)
+print(age)</code></pre></div></div>
+    <div class="lesson-footer"><div class="challenge step"><strong>Challenge</strong> Create variables for a city and its population. Print both values and choose clear names.</div><p class="source">Reference: <a href="https://www.w3schools.com/python/python_variables.asp" target="_blank" rel="noreferrer">W3Schools / Python Variables</a></p></div>
+    <aside class="notes"><strong>6 minutes.</strong> Explain assignment with the equals sign: a name refers to a value. Ask learners to change the name and age and predict the output.</aside>
+  </section>
+
+  <section class="slide" data-title="Python data types">
+    <div class="topline"><span class="brand">05 / Data types</span><span>Values have kinds</span></div>
+    <div class="content grid"><div class="card step"><h3>Start with four</h3><p><strong>str</strong> is text. <strong>int</strong> is a whole number. <strong>float</strong> is a decimal number. <strong>bool</strong> is <code>True</code> or <code>False</code>.</p><p style="margin-top:16px">Use <code>type()</code> to inspect a value.</p></div><div class="terminal step"><div class="terminal-bar"><i></i><i></i><i></i></div><pre><code>name = "Python"
+learners = 30
+rating = 4.5
+ready = True
+
+print(type(name))
+print(type(learners))</code></pre></div></div>
+    <div class="lesson-footer"><div class="challenge step"><strong>Challenge</strong> Make one value of each type, then use <code>type()</code> to check them.</div><p class="source">Reference: <a href="https://www.w3schools.com/python/python_datatypes.asp" target="_blank" rel="noreferrer">W3Schools / Python Data Types</a></p></div>
+    <aside class="notes"><strong>6 minutes.</strong> Have learners classify each value before running the type() calls. More Python types exist; keep this first pass to four common ones.</aside>
+  </section>
+
+  <section class="slide" data-title="Python numbers">
+    <div class="topline"><span class="brand">06 / Numbers</span><span>Numeric values</span></div>
+    <div class="content grid"><div class="card step"><h3>Whole or decimal?</h3><p><strong>int</strong> holds whole numbers, <strong>float</strong> holds decimal numbers, and <strong>complex</strong> represents numbers with an imaginary part. Start by recognising int and float.</p></div><div class="terminal step"><div class="terminal-bar"><i></i><i></i><i></i></div><pre><code>apples = 8
+price = 1.5
+
+print(apples + 2)
+print(price * 2)
+print(type(apples))
+print(type(price))</code></pre></div></div>
+    <div class="lesson-footer"><div class="challenge step"><strong>Challenge</strong> Set a quantity and a decimal price. Print the quantity plus one and the price multiplied by two.</div><p class="source">Reference: <a href="https://www.w3schools.com/python/python_numbers.asp" target="_blank" rel="noreferrer">W3Schools / Python Numbers</a></p></div>
+    <aside class="notes"><strong>6 minutes.</strong> Use type() to show that 8 is int and 1.5 is float. Keep complex values as recognition only in this session.</aside>
+  </section>
+
+  <section class="slide" data-title="Python casting">
+    <div class="topline"><span class="brand">07 / Casting</span><span>Convert a value</span></div>
+    <div class="content grid"><div class="card step"><h3>Make conversion explicit</h3><p>Use <code>int()</code>, <code>float()</code>, or <code>str()</code> to convert compatible values. Converting a float to int removes the decimal part; it does not round.</p></div><div class="terminal step"><div class="terminal-bar"><i></i><i></i><i></i></div><pre><code>whole = int(6.8)
+decimal = float("3.5")
+label = str(12)
+
+print(whole)
+print(decimal)
+print(label)</code></pre></div></div>
+    <div class="lesson-footer"><div class="challenge step"><strong>Challenge</strong> Convert <code>"25"</code> to an integer and add 5. Convert <code>4</code> to text and print it beside a short label.</div><p class="source">Reference: <a href="https://www.w3schools.com/python/python_casting.asp" target="_blank" rel="noreferrer">W3Schools / Python Casting</a></p></div>
+    <aside class="notes"><strong>7 minutes.</strong> int("25") works, but int("twenty-five") does not. Casting 6.8 to int gives 6 because the decimal part is removed.</aside>
+  </section>
+
+  <section class="slide" data-title="Q&amp;A">
+    <div class="topline"><span class="brand">Questions &amp; discussion</span><span>Pause / reflect / ask</span></div>
+    <div class="content"><p class="eyebrow">Open floor</p><h2>What became clearer?<br>What still feels fuzzy?</h2><div class="qa-panel step"><p>Bring a question, a surprising output, or a point where the code behaved differently from your prediction. We can reason through it together.</p></div></div>
+    <aside class="notes"><strong>10-15 minutes.</strong> Take questions from setup and the seven topics. Invite learners to show the smallest example that reproduces a confusing result. Close unanswered items by pointing to the relevant W3Schools topic or official documentation.</aside>
+  </section>
+
+  <section class="slide opening" data-title="Closing">
+    <div class="topline"><span class="brand">Session 01 / Complete</span><span>Keep building</span></div>
+    <div class="content"><p class="eyebrow">Your turn</p><h2>Predict it.<br>Run it.<br><span style="color:var(--lime)">Explain it.</span></h2><p class="lede">Small experiments make Python familiar. Keep each challenge, change one thing, and notice what the change teaches you.</p><p class="closing-question step">What will you change first?</p></div>
+    <aside class="notes"><strong>Closing, 3 minutes.</strong> Ask every learner to pick one challenge to finish or extend after the session. Suggested next topic: input() and strings in context, followed by operators.</aside>
+  </section>
+</main>
+
+<div class="nav"><button id="prev" aria-label="Previous slide" title="Previous slide">&#8592;</button><button id="next" aria-label="Next slide" title="Next slide">&#8594;</button></div>
+<div class="counter" id="counter" aria-live="polite"></div><div class="chrome"><div class="progress" id="progress"></div></div><div class="overview" id="overview" aria-label="Slide overview"></div>
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const overview = document.getElementById('overview');
+  let current = 0;
+  let stepIndex = 0;
+
+  function slideSteps() { return [...slides[current].querySelectorAll('.step')]; }
+  function render() {
+    slides.forEach((slide, index) => {
+      slide.classList.toggle('active', index === current);
+      slide.classList.toggle('previous', index < current);
+    });
+    slideSteps().forEach((step, index) => step.classList.toggle('visible', index < stepIndex));
+    counter.textContent = `${current + 1} / ${slides.length}`;
+    progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+  }
+  function forward() {
+    const steps = slideSteps();
+    if (stepIndex < steps.length) { stepIndex += 1; render(); return; }
+    if (current < slides.length - 1) { current += 1; stepIndex = 0; render(); }
+  }
+  function back() {
+    if (stepIndex > 0) { stepIndex -= 1; render(); return; }
+    if (current > 0) { current -= 1; stepIndex = slideSteps().length; render(); }
+  }
+  document.getElementById('next').addEventListener('click', forward);
+  document.getElementById('prev').addEventListener('click', back);
+  document.addEventListener('keydown', (event) => {
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); forward(); }
+    if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(event.key)) { event.preventDefault(); back(); }
+    if (event.key.toLowerCase() === 'n') document.body.classList.toggle('show-notes');
+    if (event.key.toLowerCase() === 'o') document.body.classList.toggle('show-overview');
+    if (event.key.toLowerCase() === 'f') document.documentElement.requestFullscreen?.();
+    if (event.key === 'Escape') document.body.classList.remove('show-overview', 'show-notes');
+  });
+  slides.forEach((slide, index) => {
+    const button = document.createElement('button');
+    button.innerHTML = `<span>${String(index + 1).padStart(2, '0')}</span>${slide.dataset.title}`;
+    button.addEventListener('click', () => { current = index; stepIndex = 0; document.body.classList.remove('show-overview'); render(); });
+    overview.appendChild(button);
+  });
+  render();
+</script>
+</body>
+</html>
